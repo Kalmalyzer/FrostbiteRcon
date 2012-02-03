@@ -70,7 +70,7 @@ SynchronousServerConnection::~SynchronousServerConnection()
 
 Words SynchronousServerConnection::execute(const Words& request)
 {
-	TextRconPacket textRequest(true, false, m_sequence, request);
+	TextRconPacket textRequest(false, false, m_sequence, request);
 	m_sequence = (m_sequence + 1) & BinaryRconPacket::SequenceMask;
 
 	BinaryRconPacket binaryRequest(textRequest);
@@ -130,6 +130,9 @@ Words SynchronousServerConnection::execute(const Words& request)
 
 	if (m_trafficLog)
 		m_trafficLog->onPacketReceived(textResponse);
+
+	if (textResponse.m_originatedOnServer || !textResponse.m_isResponse)
+		throw std::runtime_error("Received an invalid packet");
 
 	return textResponse.m_data;
 }

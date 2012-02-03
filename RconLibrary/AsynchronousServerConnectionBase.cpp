@@ -125,14 +125,13 @@ void AsynchronousServerConnectionBase::update()
 				if (m_trafficLog)
 					m_trafficLog->onPacketReceived(textRconPacket);
 
-/* TODO: enable this code when the BF3 server sends proper event requests
-				if ((textRconPacket.m_isResponse && !textRconPacket.m_originatedOnClient)
-				    || (!textRconPacket.m_isResponse && textRconPacket.m_originatedOnClient))
+				if ((textRconPacket.m_originatedOnServer && textRconPacket.m_isResponse)
+					|| (!textRconPacket.m_originatedOnServer && !textRconPacket.m_isResponse))
 				{
-					//throw std::runtime_error("Received an invalid packet");
+					throw std::runtime_error("Received an invalid packet");
 				}
 				else
-*/				{
+				{
 					if (textRconPacket.m_isResponse)
 						onServerResponse(textRconPacket.m_sequence, textRconPacket.m_data);
 					else
@@ -153,7 +152,7 @@ void AsynchronousServerConnectionBase::update()
 
 void AsynchronousServerConnectionBase::sendRequest(uint32_t sequence, Words words)
 {
-	TextRconPacket textRequest(true, false, sequence, words);
+	TextRconPacket textRequest(false, false, sequence, words);
 
 	BinaryRconPacket binaryRequest(textRequest);
 

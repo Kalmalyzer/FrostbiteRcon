@@ -28,6 +28,38 @@ class ServerRequestCallback : public AsynchronousServerConnection::ServerRequest
 public:
 	virtual void onServerRequest(AsynchronousServerConnection::RequestHandle handle, const Words& words)
 	{
+		// TODO: handle server requests properly
+	}
+};
+
+class VersionResponseCallback : public AsynchronousServerConnection::ServerResponseCallback
+{
+public:
+	virtual void onServerResponse(const Words& words)
+	{
+		if (words.size() == 3 && words[0] == "OK")
+			printf("Server version: Game %s, build ID %s\n", words[1].c_str(), words[2].c_str());
+		else
+			printf("Invalid response to version query\n");
+	}
+};
+
+class LoginResponseCallback : public AsynchronousServerConnection::ServerResponseCallback
+{
+public:
+	virtual void onServerResponse(const Words& words)
+	{
+		if (words.size() == 1)
+		{
+			if (words[0] == "OK")
+				printf("Logged in successfully\n");
+			else if (words[0] == "InvalidPassword")
+				printf("Invalid password\n");
+			else
+				printf("Invalid response to login query\n");
+		}
+		else
+			printf("Invalid response to login query\n");
 	}
 };
 
@@ -36,8 +68,10 @@ class ServerResponseCallback : public AsynchronousServerConnection::ServerRespon
 public:
 	virtual void onServerResponse(const Words& words)
 	{
+		printf("Server response: %s\n", toString(words).c_str());
 	}
 };
+
 
 int main(void)
 {
@@ -46,22 +80,36 @@ int main(void)
 		StateLog stateLog;
 		TrafficLog trafficLog;
 		ServerRequestCallback serverRequestCallback;
-		AsynchronousServerConnection conn("213.163.71.95", 47203, serverRequestCallback, &stateLog, &trafficLog);
+		AsynchronousServerConnection conn("213.163.71.95", 47203, serverRequestCallback, &stateLog, /* &trafficLog */ nullptr);
 
+		printf("Sending version command\n");
 		Words versionRequest = createWords("version");
-		ServerResponseCallback versionCallback;
+		VersionResponseCallback versionCallback;
 		conn.sendRequest(versionRequest, versionCallback);
 
+		printf("Sending login command\n");
 		Words loginRequest = createWords("login.plainText", "smurf");
-		ServerResponseCallback loginCallback;
+		LoginResponseCallback loginCallback;
 		conn.sendRequest(loginRequest, loginCallback);
 
+		ServerResponseCallback serverResponseCallback;
+
+		printf("Asking to enable events\n");
 		Words enableEventsRequest = createWords("admin.eventsEnabled", "true");
-		ServerResponseCallback enableEventsCallback;
-		conn.sendRequest(enableEventsRequest, enableEventsCallback);
+		conn.sendRequest(enableEventsRequest, serverResponseCallback);
+
+		int i = 0;
 
 		while (true)
 		{
+			i++;
+			if (i == 10)
+			{
+				printf("Sending end-round request\n");
+				Words endRoundRequest = createWords("mapList.restartRound");
+				conn.sendRequest(endRoundRequest, serverResponseCallback);
+			}
+
 			conn.update();
 			Sleep(100);
 		}

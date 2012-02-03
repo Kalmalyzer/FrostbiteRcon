@@ -51,14 +51,9 @@ class ServerRequestCallback : public ThreadedServerConnection::ServerRequestCall
 public:
 	virtual void onServerRequest(ThreadedServerConnection::ClientResponse& response, const Words& words)
 	{
-		// TODO: remove this filtering of server requests, once the game servers themselves no longer echo
-		//       clientside commands when events are enabled
-		if (words.size() && words[0].find(".on") != std::string::npos)
-		{
-			printf("<- %s\n", toString(words).c_str()); 
-			printf("-> OK\n");
-			response.sendResponse(createWords("OK"));
-		}
+		printf("<- %s\n", toString(words).c_str()); 
+		printf("-> OK\n");
+		response.sendResponse(createWords("OK"));
 	}
 };
 

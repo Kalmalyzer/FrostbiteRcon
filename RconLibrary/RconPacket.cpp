@@ -122,7 +122,7 @@ TextRconPacket::TextRconPacket(const BinaryRconPacket& binaryRconPacket)
 	offset += 4;
 
 	m_sequence = sequence & BinaryRconPacket::SequenceMask;
-	m_originatedOnClient = ((sequence & BinaryRconPacket::OriginatedOnClientFlag) ? true : false);
+	m_originatedOnServer = ((sequence & BinaryRconPacket::OriginatedOnServerFlag) ? true : false);
 	m_isResponse = ((sequence & BinaryRconPacket::IsResponseFlag) ? true : false);
 
 	uint32_t packetSize = binaryRconPacket.readU32(offset);
@@ -140,8 +140,8 @@ TextRconPacket::TextRconPacket(const BinaryRconPacket& binaryRconPacket)
 	}
 }
 
-TextRconPacket::TextRconPacket(bool originatedOnClient, bool isResponse, uint32_t sequence, const Words& words)
-	: m_originatedOnClient(originatedOnClient)
+TextRconPacket::TextRconPacket(bool originatedOnServer, bool isResponse, uint32_t sequence, const Words& words)
+	: m_originatedOnServer(originatedOnServer)
 	, m_isResponse(isResponse)
 	, m_sequence(sequence)
 	, m_data(words)
@@ -168,9 +168,9 @@ bool TextRconPacket::isValid() const
 std::string TextRconPacket::toString() const
 {
 	char result[BinaryRconPacket::MaxPacketSize + 64];
-	sprintf(result, "IsResponse: %s OriginatedOnClient: %s Sequence: %d %s",
+	sprintf(result, "IsResponse: %s OriginatedOnServer: %s Sequence: %d %s",
 		m_isResponse ? "true" : "false",
-		m_originatedOnClient ? "true" : "false",
+		m_originatedOnServer ? "true" : "false",
 		m_sequence,
 		::toString(m_data).c_str());
 
@@ -204,7 +204,7 @@ BinaryRconPacket::BinaryRconPacket(const TextRconPacket& textRconPacket)
 		throw std::runtime_error("Invalid text packet");
 
 	uint32_t sequence = textRconPacket.m_sequence
-		| (textRconPacket.m_originatedOnClient ? OriginatedOnClientFlag : 0)
+		| (textRconPacket.m_originatedOnServer ? OriginatedOnServerFlag : 0)
 		| (textRconPacket.m_isResponse ? IsResponseFlag : 0);
 
 	uint32_t packetSize = 12;

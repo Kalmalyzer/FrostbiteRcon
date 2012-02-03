@@ -32,13 +32,13 @@ class TextRconPacket
 {
 public:
 	explicit TextRconPacket(const BinaryRconPacket& binaryRconPacket);
-	explicit TextRconPacket(bool originatedOnClient, bool isResponse, uint32_t sequence, const Words& words);
+	explicit TextRconPacket(bool originatedOnServer, bool isResponse, uint32_t sequence, const Words& words);
 
 	bool isValid() const;
 
 	std::string toString() const;
 
-	bool m_originatedOnClient;
+	bool m_originatedOnServer;
 	bool m_isResponse;
 	uint32_t m_sequence;
 
@@ -69,7 +69,7 @@ public:
 
 	enum { MaxPacketSize = 16384 };
 	enum { SequenceMask = 0x3fffffff };
-	enum { OriginatedOnClientFlag = 0x80000000U };
+	enum { OriginatedOnServerFlag = 0x80000000U };
 	enum { IsResponseFlag = 0x40000000 };
 
 	bool isValid() const;
