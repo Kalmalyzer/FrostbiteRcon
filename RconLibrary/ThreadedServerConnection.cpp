@@ -43,19 +43,24 @@ void ThreadedServerConnection::WorkerThread::run()
 
 					if (!entry.m_isResponse)
 					{
-						m_connection.m_serverRequestCallback.onServerRequest(reinterpret_cast<RequestHandle>(entry.m_sequence), entry.m_words);
+						ClientResponseImpl* clientResponse = new ClientResponseImpl(m_connection, entry.m_sequence);
+						m_connection.m_serverRequestCallback.onServerRequest(*clientResponse, entry.m_words);
 					}
 					else
 					{
 						OutstandingRequests::iterator outstandingRequest = m_outstandingRequests.find(entry.m_sequence);
 
 						if (outstandingRequest == m_outstandingRequests.end())
+						{
 							throw std::runtime_error("Received an unexpected response from the server");
+						}
+						else
+						{
+							ServerResponseCallback* callback = outstandingRequest->second;
+							m_outstandingRequests.erase(outstandingRequest);
 
-						ServerResponseCallback* callback = outstandingRequest->second;
-						m_outstandingRequests.erase(outstandingRequest);
-
-						callback->onServerResponse(entry.m_words);
+							callback->onServerResponse(entry.m_words);
+						}
 					}
 				}
 			}
@@ -69,8 +74,20 @@ void ThreadedServerConnection::WorkerThread::run()
 	}
 }
 
-ThreadedServerConnection::ThreadedServerConnection(const char* host, unsigned int port, ServerRequestCallback& serverRequestCallback, ServerConnectionTrafficBase* trafficLog)
-	: AsynchronousServerConnectionBase(host, port, trafficLog)
+ThreadedServerConnection::ClientResponseImpl::ClientResponseImpl(ThreadedServerConnection& connection, uint32_t sequence)
+	: m_connection(connection)
+	, m_sequence(sequence)
+{
+}
+
+void ThreadedServerConnection::ClientResponseImpl::sendResponse(const Words& words)
+{
+	m_connection.sendResponse(m_sequence, words);
+	delete this;
+}
+
+ThreadedServerConnection::ThreadedServerConnection(const char* host, unsigned int port, ServerRequestCallback& serverRequestCallback, ServerConnectionStateBase* stateLog, ServerConnectionTrafficBase* trafficLog)
+	: AsynchronousServerConnectionBase(host, port, stateLog, trafficLog)
 	, m_outgoingRequestSequence(0)
 	, m_serverRequestCallback(serverRequestCallback)
 {
@@ -92,11 +109,10 @@ void ThreadedServerConnection::sendRequest(Words words, ServerResponseCallback& 
 	m_outgoingRequestSequence = (m_outgoingRequestSequence + 1) & BinaryRconPacket::SequenceMask;
 }
 
-void ThreadedServerConnection::sendResponse(RequestHandle handle, const Words& words)
+void ThreadedServerConnection::sendResponse(uint32_t sequence, const Words& words)
 {
 	MutexScope mutexScope(m_outgoingQueueMutex);
 
-	uint32_t sequence = reinterpret_cast<uint32_t>(handle);
 	OutgoingQueueEntry entry(true, sequence, words, nullptr);
 	m_outgoingQueue.push(entry);
 }
@@ -104,13 +120,13 @@ void ThreadedServerConnection::sendResponse(RequestHandle handle, const Words& w
 void ThreadedServerConnection::onServerRequest(uint32_t sequence, Words words)
 {
 	MutexScope mutexScope(m_incomingQueueMutex);
-	IncomingQueueEntry entry(false, sequence, words, reinterpret_cast<RequestHandle>(sequence));
+	IncomingQueueEntry entry(false, sequence, words, 0);
 	m_incomingQueue.push(entry);
 }
 
 void ThreadedServerConnection::onServerResponse(uint32_t sequence, Words words)
 {
 	MutexScope mutexScope(m_incomingQueueMutex);
-	IncomingQueueEntry entry(true, sequence, words, nullptr);
+	IncomingQueueEntry entry(true, sequence, words, 0);
 	m_incomingQueue.push(entry);
 }

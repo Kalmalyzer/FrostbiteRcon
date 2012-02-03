@@ -24,6 +24,7 @@
     <ClInclude Include="AsynchronousServerConnectionBase.h" />
     <ClInclude Include="Mutex.h" />
     <ClInclude Include="RconPacket.h" />
+    <ClInclude Include="ServerConnectionStateBase.h" />
     <ClInclude Include="SynchronousServerConnection.h" />
     <ClInclude Include="ServerConnectionTrafficBase.h" />
     <ClInclude Include="ThreadBase.h" />

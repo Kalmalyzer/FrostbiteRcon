@@ -4,13 +4,15 @@
 #endif
 
 #include "SynchronousServerConnection.h"
+#include "ServerConnectionStateBase.h"
 #include "ServerConnectionTrafficBase.h"
 
 #include <cstring>
 #include <WinSock2.h>
 
-SynchronousServerConnection::SynchronousServerConnection(const char* host, unsigned int port, ServerConnectionTrafficBase* trafficLog)
-	: m_trafficLog(trafficLog)
+SynchronousServerConnection::SynchronousServerConnection(const char* host, unsigned int port, ServerConnectionStateBase* stateLog, ServerConnectionTrafficBase* trafficLog)
+	: m_stateLog(stateLog)
+	, m_trafficLog(trafficLog)
 	, m_sequence(0)
 {
 	WORD versionRequested = MAKEWORD(2, 0);
@@ -28,8 +30,8 @@ SynchronousServerConnection::SynchronousServerConnection(const char* host, unsig
 
 	m_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (m_trafficLog)
-		m_trafficLog->onHostLookup(host);
+	if (m_stateLog)
+		m_stateLog->onHostLookup(host);
 
 	const hostent* hostEntry = gethostbyname(host);
 	if (!hostEntry)
@@ -43,8 +45,8 @@ SynchronousServerConnection::SynchronousServerConnection(const char* host, unsig
 	sin.sin_addr.s_addr = (reinterpret_cast<const in_addr*>(hostEntry->h_addr))->s_addr;
 	sin.sin_port = htons(port);
 
-	if (m_trafficLog)
-		m_trafficLog->onConnecting(host, port);
+	if (m_stateLog)
+		m_stateLog->onConnecting(host, port);
 
 	if (connect(m_socket, reinterpret_cast<const sockaddr*>(&sin), sizeof sin) != 0)
 	{
@@ -52,16 +54,16 @@ SynchronousServerConnection::SynchronousServerConnection(const char* host, unsig
 		throw std::runtime_error("Error while connecting to remote host");
 	}
 
-	if (m_trafficLog)
-		m_trafficLog->onConnected();
+	if (m_stateLog)
+		m_stateLog->onConnected();
 }
 
 SynchronousServerConnection::~SynchronousServerConnection()
 {
 	closesocket(m_socket);
 
-	if (m_trafficLog)
-		m_trafficLog->onDisconnected();
+	if (m_stateLog)
+		m_stateLog->onDisconnected();
 
 	WSACleanup();
 }

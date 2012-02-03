@@ -1,8 +1,8 @@
 
 #include "AsynchronousServerConnection.h"
 
-AsynchronousServerConnection::AsynchronousServerConnection(const char* host, unsigned int port, ServerRequestCallback& serverRequestCallback, ServerConnectionTrafficBase* trafficLog)
-	: AsynchronousServerConnectionBase(host, port, trafficLog)
+AsynchronousServerConnection::AsynchronousServerConnection(const char* host, unsigned int port, ServerRequestCallback& serverRequestCallback, ServerConnectionStateBase* stateLog, ServerConnectionTrafficBase* trafficLog)
+	: AsynchronousServerConnectionBase(host, port, stateLog, trafficLog)
 	, m_requestSequence(0)
 	, m_serverRequestCallback(serverRequestCallback)
 {

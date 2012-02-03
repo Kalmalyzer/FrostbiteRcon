@@ -4,14 +4,16 @@
 #endif
 
 #include "AsynchronousServerConnectionBase.h"
+#include "ServerConnectionStateBase.h"
 #include "ServerConnectionTrafficBase.h"
 
 #include <WinSock2.h>
 
 
 
-AsynchronousServerConnectionBase::AsynchronousServerConnectionBase(const char* host, unsigned int port, ServerConnectionTrafficBase* trafficLog)
-	: m_trafficLog(trafficLog)
+AsynchronousServerConnectionBase::AsynchronousServerConnectionBase(const char* host, unsigned int port, ServerConnectionStateBase* stateLog, ServerConnectionTrafficBase* trafficLog)
+	: m_stateLog(stateLog)
+	, m_trafficLog(trafficLog)
 	, m_receivedPacketBytes(0)
 {
 	WORD versionRequested = MAKEWORD(2, 0);
@@ -29,8 +31,8 @@ AsynchronousServerConnectionBase::AsynchronousServerConnectionBase(const char* h
 
 	m_socket = socket(AF_INET, SOCK_STREAM, 0);
 
-	if (m_trafficLog)
-		m_trafficLog->onHostLookup(host);
+	if (m_stateLog)
+		m_stateLog->onHostLookup(host);
 
 	const hostent* hostEntry = gethostbyname(host);
 	if (!hostEntry)
@@ -44,8 +46,8 @@ AsynchronousServerConnectionBase::AsynchronousServerConnectionBase(const char* h
 	sin.sin_addr.s_addr = (reinterpret_cast<const in_addr*>(hostEntry->h_addr))->s_addr;
 	sin.sin_port = htons(port);
 
-	if (m_trafficLog)
-		m_trafficLog->onConnecting(host, port);
+	if (m_stateLog)
+		m_stateLog->onConnecting(host, port);
 
 	if (connect(m_socket, reinterpret_cast<const sockaddr*>(&sin), sizeof sin) != 0)
 	{
@@ -53,8 +55,8 @@ AsynchronousServerConnectionBase::AsynchronousServerConnectionBase(const char* h
 		throw std::runtime_error("Error while connecting to remote host");
 	}
 
-	if (m_trafficLog)
-		m_trafficLog->onConnected();
+	if (m_stateLog)
+		m_stateLog->onConnected();
 
 	unsigned long nonBlockingEnabled = 1;
 	error = ioctlsocket(m_socket, FIONBIO, &nonBlockingEnabled);
@@ -72,8 +74,8 @@ AsynchronousServerConnectionBase::~AsynchronousServerConnectionBase()
 	{
 		closesocket(m_socket);
 
-		if (m_trafficLog)
-			m_trafficLog->onDisconnected();
+		if (m_stateLog)
+			m_stateLog->onDisconnected();
 	}
 
 	WSACleanup();
@@ -94,8 +96,8 @@ void AsynchronousServerConnectionBase::update()
 	else if (recvSize == 0)
 	{
 		closesocket(m_socket);
-		if (m_trafficLog)
-			m_trafficLog->onDisconnected();
+		if (m_stateLog)
+			m_stateLog->onDisconnected();
 	}
 	else
 		m_receivedPacketBytes += recvSize;
@@ -120,17 +122,21 @@ void AsynchronousServerConnectionBase::update()
 
 				TextRconPacket textRconPacket(binaryRconPacket);
 
-				if ((textRconPacket.m_isResponse && !textRconPacket.m_originatedOnClient)
-				    || (!textRconPacket.m_isResponse && textRconPacket.m_originatedOnClient))
-					throw std::runtime_error("Received an invalid packet");
-
 				if (m_trafficLog)
 					m_trafficLog->onPacketReceived(textRconPacket);
-
-				if (textRconPacket.m_isResponse)
-					onServerResponse(textRconPacket.m_sequence, textRconPacket.m_data);
+/*
+				if ((textRconPacket.m_isResponse && !textRconPacket.m_originatedOnClient)
+				    || (!textRconPacket.m_isResponse && textRconPacket.m_originatedOnClient))
+				{
+					//throw std::runtime_error("Received an invalid packet");
+				}
 				else
-					onServerRequest(textRconPacket.m_sequence, textRconPacket.m_data);
+*/				{
+					if (textRconPacket.m_isResponse)
+						onServerResponse(textRconPacket.m_sequence, textRconPacket.m_data);
+					else
+						onServerRequest(textRconPacket.m_sequence, textRconPacket.m_data);
+				}
 
 				m_receivedPacketBytes -= binaryRconPacketSize;
 				memmove(m_receiveBuffer, m_receiveBuffer + binaryRconPacketSize, m_receivedPacketBytes);
@@ -165,7 +171,7 @@ void AsynchronousServerConnectionBase::sendRequest(uint32_t sequence, Words word
 
 void AsynchronousServerConnectionBase::sendResponse(uint32_t sequence, Words words)
 {
-	TextRconPacket textResponse(true, false, sequence, words);
+	TextRconPacket textResponse(true, true, sequence, words);
 
 	BinaryRconPacket binaryResponse(textResponse);
 

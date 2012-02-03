@@ -20,22 +20,35 @@ public:
 		virtual void onServerResponse(const Words& words) = 0;
 	};
 
-	struct RequestHandleBase;
-	typedef RequestHandleBase* RequestHandle;
+	class ClientResponse
+	{
+	public:
+		virtual void sendResponse(const Words& words) = 0;
+	};
 
 	class ServerRequestCallback
 	{
 	public:
-		virtual void onServerRequest(RequestHandle handle, const Words& words) = 0;
+		virtual void onServerRequest(ClientResponse& response, const Words& words) = 0;
 	};
 
-	ThreadedServerConnection(const char* host, unsigned int port, ServerRequestCallback& callback, ServerConnectionTrafficBase* trafficLog = nullptr);
+	ThreadedServerConnection(const char* host, unsigned int port, ServerRequestCallback& callback, ServerConnectionStateBase* stateLog = nullptr, ServerConnectionTrafficBase* trafficLog = nullptr);
 	virtual ~ThreadedServerConnection();
 
 	void sendRequest(Words words, ServerResponseCallback& callback);
-	void sendResponse(RequestHandle handle, const Words& words);
 
 private:
+	class ClientResponseImpl : public ClientResponse
+	{
+	public:
+		ClientResponseImpl(ThreadedServerConnection& connection, uint32_t sequence);
+		virtual void sendResponse(const Words& words);
+	private:
+		ThreadedServerConnection& m_connection;
+		uint32_t m_sequence;
+	};
+
+	void sendResponse(uint32_t sequence, const Words& words);
 
 	template <typename T>
 	class PacketQueueEntry
@@ -58,7 +71,7 @@ private:
 
 
 
-	typedef PacketQueueEntry<RequestHandle> IncomingQueueEntry;
+	typedef PacketQueueEntry<int> IncomingQueueEntry;
 
 	typedef std::queue<IncomingQueueEntry> IncomingQueue;
 

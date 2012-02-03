@@ -6,8 +6,6 @@
 #include <string>
 #include <cstdint>
 
-class BinaryRconPacket;
-
 typedef std::string Word;
 typedef std::vector<std::string> Words;
 
@@ -22,6 +20,13 @@ Words createWords(const char* word0, const char* word1, const char* word2, const
 Words createWords(const char* word0, const char* word1, const char* word2, const char* word3, const char* word4, const char* word5, const char* word6, const char* word7, const char* word8);
 Words createWords(const char* word0, const char* word1, const char* word2, const char* word3, const char* word4, const char* word5, const char* word6, const char* word7, const char* word8, const char* word9);
 Words createWords(unsigned int numWords, const char** words);
+
+class TextRconPacket;
+class BinaryRconPacket;
+
+std::string toString(const Words& words);
+std::string toString(const TextRconPacket& packet);
+std::string toString(const BinaryRconPacket& packet);
 
 class TextRconPacket
 {

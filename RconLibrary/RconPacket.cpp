@@ -78,6 +78,40 @@ Words createWords(unsigned int numWords, const char** words)
 	return outWords;
 }
 
+std::string toString(const Words& words)
+{
+	std::string result;
+	for (Words::const_iterator word = words.begin(), end = words.end(); word != end; ++word)
+	{
+		if (word != words.begin())
+			result += " ";
+
+		bool needsQuotes = (word->find(' ') != std::string::npos);
+
+		if (needsQuotes)
+			result += "\"";
+
+		result += *word;
+
+		if (needsQuotes)
+			result += "\"";
+	}
+
+	return result;
+
+}
+
+std::string toString(const TextRconPacket& packet)
+{
+	return packet.toString();
+}
+
+std::string toString(const BinaryRconPacket& packet)
+{
+	return TextRconPacket(packet).toString();
+}
+
+
 TextRconPacket::TextRconPacket(const BinaryRconPacket& binaryRconPacket)
 {
 	if (!binaryRconPacket.isValid())
@@ -134,15 +168,11 @@ bool TextRconPacket::isValid() const
 std::string TextRconPacket::toString() const
 {
 	char result[BinaryRconPacket::MaxPacketSize + 64];
-	sprintf(result, "IsResponse: %s OriginatedOnClient: %s Sequence: %d ",
+	sprintf(result, "IsResponse: %s OriginatedOnClient: %s Sequence: %d %s",
 		m_isResponse ? "true" : "false",
 		m_originatedOnClient ? "true" : "false",
-		m_sequence);
-
-	for (unsigned int word = 0; word < m_data.size(); ++word)
-	{
-		sprintf(&result[strlen(result)], "\"%s\" ", m_data[word].c_str());
-	}
+		m_sequence,
+		::toString(m_data).c_str());
 
 	return result;
 }

@@ -6,17 +6,19 @@
 #include "ServerConnection.h"
 
 #include "../RconLibrary/ThreadedServerConnection.h"
+#include "../RconLibrary/ServerConnectionStateBase.h"
 #include "../RconLibrary/ServerConnectionTrafficBase.h"
 
-class TrafficLog : public ServerConnectionTrafficBase
+class Log : public ServerConnectionStateBase, public ServerConnectionTrafficBase
 {
 public:
-	TrafficLog(HWND hwnd);
+	Log(HWND hwnd);
 
 	virtual void onHostLookup(const char* host) { sendMessageToConsole("Performing DNS lookup for %s...\n", host); }
 	virtual void onConnecting(const char* host, unsigned int port) { sendMessageToConsole("Connecting to %s:%d...\n", host, port); }
 	virtual void onConnected() { sendMessageToConsole("Connected to host.\n"); }
 	virtual void onDisconnected() { sendMessageToConsole("Disconnected from host.\n"); }
+
 	virtual void onPacketSent(const TextRconPacket& packet) { sendMessageToConsole("-> %s\n", packet.toString().c_str()); }
 	virtual void onPacketReceived(const TextRconPacket& packet) { sendMessageToConsole("<- %s\n", packet.toString().c_str()); }
 
@@ -26,12 +28,12 @@ private:
 	HWND m_hwnd;
 };
 
-TrafficLog::TrafficLog(HWND hwnd)
+Log::Log(HWND hwnd)
 	: m_hwnd(hwnd)
 {
 }
 
-void TrafficLog::sendMessageToConsole(const char* format, ...)
+void Log::sendMessageToConsole(const char* format, ...)
 {
 	va_list args;
 	va_start(args, format);
@@ -47,8 +49,16 @@ void TrafficLog::sendMessageToConsole(const char* format, ...)
 class ServerRequestCallback : public ThreadedServerConnection::ServerRequestCallback
 {
 public:
-	virtual void onServerRequest(ThreadedServerConnection::RequestHandle handle, const Words& words)
+	virtual void onServerRequest(ThreadedServerConnection::ClientResponse& response, const Words& words)
 	{
+		// TODO: remove this filtering of server requests, once the game servers themselves no longer echo
+		//       clientside commands when events are enabled
+		if (words.size() && words[0].find(".on") != std::string::npos)
+		{
+			printf("<- %s\n", toString(words).c_str()); 
+			printf("-> OK\n");
+			response.sendResponse(createWords("OK"));
+		}
 	}
 };
 
@@ -69,9 +79,9 @@ void ServerConnectionThread::run()
 {
 	try
 	{
-		TrafficLog* trafficLog = new TrafficLog(m_hwnd);
-		ServerRequestCallback* serverRequestCallback = new ServerRequestCallback();
-		m_threadedServerConnection = new ThreadedServerConnection("127.0.0.1", 47203, *serverRequestCallback, trafficLog);
+		Log log(m_hwnd);
+		ServerRequestCallback serverRequestCallback;
+		m_threadedServerConnection = new ThreadedServerConnection("213.163.71.95", 47203, serverRequestCallback, &log, &log);
 
 		while (true)
 		{

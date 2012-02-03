@@ -18,5 +18,6 @@
     <ClInclude Include="ThreadedServerConnection.h" />
     <ClInclude Include="Mutex.h" />
     <ClInclude Include="ThreadBase.h" />
+    <ClInclude Include="ServerConnectionStateBase.h" />
   </ItemGroup>
 </Project>

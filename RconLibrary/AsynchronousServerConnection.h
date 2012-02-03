@@ -25,7 +25,7 @@ public:
 		virtual void onServerRequest(RequestHandle handle, const Words& words) = 0;
 	};
 
-	AsynchronousServerConnection(const char* host, unsigned int port, ServerRequestCallback& callback, ServerConnectionTrafficBase* trafficLog = nullptr);
+	AsynchronousServerConnection(const char* host, unsigned int port, ServerRequestCallback& callback, ServerConnectionStateBase* stateLog = nullptr, ServerConnectionTrafficBase* trafficLog = nullptr);
 	virtual ~AsynchronousServerConnection();
 
 	void sendRequest(Words words, ServerResponseCallback& callback);
