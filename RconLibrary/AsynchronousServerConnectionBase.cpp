@@ -124,7 +124,8 @@ void AsynchronousServerConnectionBase::update()
 
 				if (m_trafficLog)
 					m_trafficLog->onPacketReceived(textRconPacket);
-/*
+
+/* TODO: enable this code when the BF3 server sends proper event requests
 				if ((textRconPacket.m_isResponse && !textRconPacket.m_originatedOnClient)
 				    || (!textRconPacket.m_isResponse && textRconPacket.m_originatedOnClient))
 				{
