@@ -86,7 +86,7 @@ std::string toString(const Words& words)
 		if (word != words.begin())
 			result += " ";
 
-		bool needsQuotes = (word->find(' ') != std::string::npos);
+		bool needsQuotes = (word->find(' ') != std::string::npos) || word->empty();
 
 		if (needsQuotes)
 			result += "\"";
