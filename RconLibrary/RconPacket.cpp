@@ -91,7 +91,15 @@ std::string toString(const Words& words)
 		if (needsQuotes)
 			result += "\"";
 
-		result += *word;
+		for (const char* c = word->c_str(); *c; c++)
+		{
+			if (*c == '"')
+				result += "\\\"";
+			else if (*c == '\\')
+				result += "\\\\";
+			else
+				result += *c;
+		}
 
 		if (needsQuotes)
 			result += "\"";
