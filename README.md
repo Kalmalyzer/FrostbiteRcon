@@ -31,5 +31,4 @@ ThreadBase is a win32 Thread packaged in an OS-agnostic interface.
 
 
 And yes, there are some known problems. Some pretty bad, other minor.
-- If enabling events, then it seems that a BF3 server will send back the command. Either that, or there is some bug in the lower levels - but I checked with Wireshark and it really looks like the server bounces back an 'admin.eventsEnabled true' to the client. This will generate an exception in the communications modules. Ideally the problem should be fixed on the BF3 server side though.
-- the ServerVersionQuery program will occasionally complain about a pure function call when querying real servers. This makes me think that there is an obscure race condition hiding in the thread usage, or the Mutex or the ThreadBase classes. Don't trust them just yet.
+Biggest so far is that the ServerVersionQuery program will occasionally complain about a pure function call when querying lots of real servers. This makes me think that there is an obscure race condition hiding in the thread usage, or the Mutex or the ThreadBase classes. Don't trust them just yet.
