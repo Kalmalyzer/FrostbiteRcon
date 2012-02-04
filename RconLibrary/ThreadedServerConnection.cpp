@@ -10,8 +10,7 @@ void ThreadedServerConnection::WorkerThread::run()
 {
 	try
 	{
-
-		while (true)
+		while (!isQuitRequested())
 		{
 			m_connection.update();
 
@@ -96,6 +95,7 @@ ThreadedServerConnection::ThreadedServerConnection(const char* host, unsigned in
 
 ThreadedServerConnection::~ThreadedServerConnection()
 {
+	m_workerThread->requestQuit();
 	delete m_workerThread;
 }
 

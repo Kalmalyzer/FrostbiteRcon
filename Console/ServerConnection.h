@@ -2,13 +2,13 @@
 #ifndef ServerConnection_h
 #define ServerConnection_h
 
-#include "../RconLibrary/ThreadBase.h"
+#include "../RconLibrary/WaitableThreadBase.h"
 #include "../RconLibrary/ThreadedServerConnection.h"
 #include "../RconLibrary/RconPacket.h"
 
 #include <Windows.h>
 
-class ServerConnectionThread : public ThreadBase
+class ServerConnectionThread : public WaitableThreadBase
 {
 public:
 	ServerConnectionThread(HWND hwnd);

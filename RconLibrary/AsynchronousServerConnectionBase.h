@@ -7,11 +7,12 @@
 #include <cstdint>
 
 #include "RconPacket.h"
+#include "NonCopyable.h"
 
 class ServerConnectionStateBase;
 class ServerConnectionTrafficBase;
 
-class AsynchronousServerConnectionBase
+class AsynchronousServerConnectionBase : NonCopyable
 {
 public:
 	AsynchronousServerConnectionBase(const char* host, unsigned int port, ServerConnectionStateBase* stateLog = nullptr, ServerConnectionTrafficBase* trafficLog = nullptr);

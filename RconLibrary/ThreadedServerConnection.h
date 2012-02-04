@@ -6,7 +6,7 @@
 
 #include "AsynchronousServerConnectionBase.h"
 #include "Mutex.h"
-#include "ThreadBase.h"
+#include "WaitableThreadBase.h"
 
 #include <map>
 #include <queue>
@@ -90,7 +90,7 @@ private:
 	class WorkerThread;
 	friend class WorkerThread;
 
-	class WorkerThread : public ThreadBase
+	class WorkerThread : public WaitableThreadBase
 	{
 	public:
 		WorkerThread(ThreadedServerConnection& connection);

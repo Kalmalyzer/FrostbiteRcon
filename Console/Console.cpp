@@ -333,6 +333,10 @@ int WINAPI WinMain(HINSTANCE hInstance,
 		DispatchMessage(&msg);
 	}
 
+	serverConnection->requestQuit();
+
+	delete serverConnection;
+
 	return (int) msg.wParam;
 }
 

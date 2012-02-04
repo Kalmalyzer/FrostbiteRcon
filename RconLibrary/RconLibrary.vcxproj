@@ -16,19 +16,20 @@
     <ClCompile Include="Mutex.cpp" />
     <ClCompile Include="RconPacket.cpp" />
     <ClCompile Include="SynchronousServerConnection.cpp" />
-    <ClCompile Include="ThreadBase.cpp" />
     <ClCompile Include="ThreadedServerConnection.cpp" />
+    <ClCompile Include="WaitableThreadBase.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AsynchronousServerConnection.h" />
     <ClInclude Include="AsynchronousServerConnectionBase.h" />
     <ClInclude Include="Mutex.h" />
+    <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="RconPacket.h" />
     <ClInclude Include="ServerConnectionStateBase.h" />
     <ClInclude Include="SynchronousServerConnection.h" />
     <ClInclude Include="ServerConnectionTrafficBase.h" />
-    <ClInclude Include="ThreadBase.h" />
     <ClInclude Include="ThreadedServerConnection.h" />
+    <ClInclude Include="WaitableThreadBase.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8455E0AA-D224-43F7-9982-532DAD155690}</ProjectGuid>

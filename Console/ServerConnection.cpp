@@ -67,6 +67,7 @@ public:
 
 ServerConnectionThread::ServerConnectionThread(HWND hwnd)
 	: m_hwnd(hwnd)
+	, m_threadedServerConnection(nullptr)
 {
 }
 
@@ -78,10 +79,10 @@ void ServerConnectionThread::run()
 		ServerRequestCallback serverRequestCallback;
 		m_threadedServerConnection = new ThreadedServerConnection("213.163.71.95", 47203, serverRequestCallback, &log, &log);
 
-		while (true)
-		{
-			Sleep(100);
-		}
+		WaitForSingleObject(m_quitRequested, INFINITE);
+
+		delete m_threadedServerConnection;
+		m_threadedServerConnection = nullptr;
 	}
 	catch (std::exception& e)
 	{
@@ -89,6 +90,9 @@ void ServerConnectionThread::run()
 		sprintf(buf, "Exception: %s", e.what());
 
 		SendMessage(m_hwnd, WM_USER, 0, reinterpret_cast<LPARAM>(buf));
+
+		delete m_threadedServerConnection;
+		m_threadedServerConnection = nullptr;
 	}
 
 }

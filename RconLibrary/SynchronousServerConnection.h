@@ -3,11 +3,12 @@
 #define SynchronousServerConnection_h
 
 #include "RconPacket.h"
+#include "NonCopyable.h"
 
 class ServerConnectionTrafficBase;
 class ServerConnectionStateBase;
 
-class SynchronousServerConnection
+class SynchronousServerConnection : NonCopyable
 {
 public:
 	SynchronousServerConnection(const char* host, unsigned int port, ServerConnectionStateBase* stateLog = nullptr, ServerConnectionTrafficBase* trafficLog = nullptr);

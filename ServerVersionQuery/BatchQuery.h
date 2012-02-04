@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "../RconLibrary/ThreadBase.h"
+#include "../RconLibrary/WaitableThreadBase.h"
 #include "../RconLibrary/Mutex.h"
 
 class SynchronousServerConnection;
@@ -21,7 +21,7 @@ private:
 
 	class ServerQuery;
 
-	class WorkerThread : public ThreadBase
+	class WorkerThread : public WaitableThreadBase
 	{
 	public:
 		WorkerThread(BatchQuery& batchQuery, ServerQuery& query);

@@ -2,9 +2,11 @@
 #ifndef Mutex_h
 #define Mutex_h
 
+#include "NonCopyable.h"
+
 #include <Windows.h>
 
-class Mutex
+class Mutex : NonCopyable
 {
 public:
 	Mutex();
